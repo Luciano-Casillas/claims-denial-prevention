@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white) ![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-FF4B4B?logo=streamlit&logoColor=white) ![Plotly](https://img.shields.io/badge/Plotly-5.x-3F4F75?logo=plotly&logoColor=white) ![XGBoost](https://img.shields.io/badge/XGBoost-2.0-F7931E?logo=xgboost&logoColor=white) ![SQL](https://img.shields.io/badge/SQL-ANSI-4169E1?logo=postgresql&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-green)
 
-Using 200,000 synthetic insurance claims across 350 providers and 100,000 members, this project identifies **$10.4M** in revenue tied to prior authorization delays (35% of all denials) and builds a denial-risk model (AUC 0.5079) that concentrates high-risk flags into the top decile with 1.18x lift for prioritized intervention.
+Using 200,000 synthetic insurance claims across 350 providers and 100,000 members, this project identifies **$10.4M** in revenue tied to prior authorization delays (35% of all denied dollars) and builds a denial-risk model (XGBoost, test AUC 0.5114) that concentrates high-risk flags into the top decile with 1.14x lift for prioritized intervention.
 
 ---
 
@@ -33,11 +33,11 @@ The Business Intelligence initiative tasked Analytics with closing a gap: leader
 
 - Prior authorization delays drive **$10.4M** (35% of all denied dollars), the single strongest opportunity lever; 54% of these denials appeal successfully, making them highly recoverable.
 - Billing errors appeal at **61% success rate**, the highest among all denial reasons -- pointing to a concentrated, low-cost recovery target of $3.64M in denied claims.
-- Network affiliation has zero correlation with denial risk: in-network denial rate **3.95%** vs out-of-network **3.87%** -- a non-factor suggesting process quality, not network tier, is the bottleneck.
-- Denials are distributed, not concentrated: the top provider accounts for only **$150K** (0.5% of total denied dollars), and only **2 members** out of 100,000 have 3+ denials, indicating a systemic process issue rather than isolated bad actors.
-- Coverage limits are unrecoverable (**$4.07M**, 14% of denials) -- policy-defined maximums with no appeal pathway that should be communicated upfront to members rather than treated as a recovery target.
-- The denial-risk model (logistic regression, test AUC **0.5079**) achieves **1.18x lift** in the top decile despite imbalanced data, and concentrates actionable high-risk flags for prioritized manual review or pre-submission intervention.
-- **$6-8M in Year-1 recovery potential** from targeted process improvements in prior authorization speedup and billing error appeals, with conservative scenario ROI of 16.7x on a $300K investment.
+- Network affiliation has no statistically significant correlation with denial risk: in-network denial rate **3.95%** vs out-of-network **3.87%** (two-proportion z-test: z=0.77, p=0.44) -- confirming process quality, not network tier, is the bottleneck.
+- Denials are distributed, not concentrated: the top provider accounts for only **$148K** (0.5% of total denied dollars), and only **2 members** out of 100,000 have 3+ denials, indicating a systemic process issue rather than isolated bad actors.
+- **Correction from an earlier internal draft:** Coverage limit denials (**$4.07M**, 14% of denials) were previously assumed to be unrecoverable ("0% appeal success, no appeal pathway"). Re-measuring directly from the denials table shows a **59% appeal success rate** for this category -- the second-highest of any denial reason. This category should be added to the active appeals program, not written off.
+- The denial-risk model (XGBoost, test AUC **0.5114**) achieves **1.14x lift** in the top decile despite imbalanced data (near-random AUC reflects the limited predictive power of the available features for this synthetic label), and concentrates actionable high-risk flags for prioritized manual review or pre-submission intervention.
+- **Theoretical full-scope recovery ceiling of $14.8M** (100% appeal-push across all 5 core denial reasons, including the newly-recoverable Coverage Limits category). This is a planning ceiling, not a Year-1 guarantee -- realistic Year-1 capture during program ramp-up is typically 50-70% of the $7.8M Prior Auth + Billing ceiling for the first two categories targeted.
 
 ---
 
@@ -53,23 +53,23 @@ The Business Intelligence initiative tasked Analytics with closing a gap: leader
 
 ### 3. Network Affiliation is a Non-Factor -- Contrary to Intuition
 
-In-network providers have a 3.95% denial rate vs out-of-network 3.87% -- an 8 basis-point spread with no statistical significance. Network affiliation was the initial hypothesis for explaining denial variance; this finding proves it is not a driver. Process quality, not network tier, is the bottleneck.
+In-network providers have a 3.95% denial rate vs out-of-network 3.87% -- an 8 basis-point spread. A two-proportion z-test confirms this is not statistically significant (z=0.77, p=0.44; in-network 95% CI [3.85%, 4.05%], out-of-network 95% CI [3.69%, 4.05%] -- the intervals overlap substantially). Network affiliation was the initial hypothesis for explaining denial variance; this finding proves it is not a driver. Process quality, not network tier, is the bottleneck.
 
 ### 4. Denials Are Systemic, Not Concentrated in Bad Actors
 
-Top provider denied $150K (0.5% of total). No single provider is an outlier. At the member level, only 2 members out of 100,000 have 3+ denials. Denials are spread across the membership and provider base, indicating a systemic process issue, not isolated failures to target with audits or provider retraining.
+Top provider denied $148K (0.5% of total). No single provider is an outlier. At the member level, only 2 members out of 100,000 have 3+ denials. Denials are spread across the membership and provider base, indicating a systemic process issue, not isolated failures to target with audits or provider retraining.
 
-### 5. Coverage Limits Are Unrecoverable -- Accept and Communicate
+### 5. Coverage Limits Are Recoverable -- A Correction to Prior Reporting
 
-$4.07M (14% of denials) are coverage-limit denials (codes CVRG01, CVRG02) -- policy-defined maximums that have no appeal pathway. These are structural, not operational. Recommendation: stop treating them as a recovery target and instead communicate limits upfront to members to reduce friction and appeals volume.
+$4.07M (14% of denials) are coverage-limit denials (codes CVRG01, CVRG02). An earlier internal draft of this analysis assumed these were policy-defined maximums with no appeal pathway (0% appeal success) and recommended writing them off. **Re-measuring appeal outcomes directly from the denials table shows this was wrong**: 282 appeals were submitted against coverage-limit denials, and 167 succeeded (approved or partial_approval) -- a **59% success rate**, the second-highest of any category. Recommendation: add Coverage Limits to the active appeals program alongside Prior Authorization and Billing Errors, and separately audit why the earlier analysis assumed a hard 0% rate without checking the data.
 
 ### 6. Incomplete Submissions Have Minimal Impact
 
-Submission completeness (presence of required documentation) shows only a 0.48 percentage-point spread in denial rates (complete: 3.92%, incomplete: 3.95%). This is not a major driver of denials despite intuitive appeal. It ranks low in the prioritization matrix.
+Submission completeness (presence of required documentation) shows only a small spread in denial rates (complete: 3.92%, incomplete: 3.95%, unknown: 4.40%). This is not a major driver of denials despite intuitive appeal. It ranks low in the prioritization matrix.
 
 ### 7. The Denial-Risk Model Concentrates High-Risk Claims for Prioritized Intervention
 
-The denial-risk model achieves 1.18x lift in the top decile (4.65% denial rate vs 3.93% baseline) with honest ROC AUC 0.5079, driven by imbalanced data. Top features: claim amount (10.71%), plan type (9.46%), chronic condition flags (9.20%). This concentration enables prioritized high-touch review or pre-submission flagging of 8,000 claims per quarter for intervention.
+The denial-risk model (XGBoost) achieves 1.14x lift in the top decile (4.48% denial rate vs 3.93% baseline) with honest test ROC AUC 0.5114, driven by imbalanced data and the limited predictive power of available features. Top features: claim amount (11.0%), network type (10.2%), specialty (9.7%). Real decile output is not perfectly monotonic (decile 2 dips below deciles 3-5) -- this is expected at this AUC level and is reported as-is rather than smoothed. This concentration enables prioritized high-touch review or pre-submission flagging for intervention, used as a triage signal rather than a standalone approve/deny decision.
 
 ---
 
@@ -85,19 +85,19 @@ The denial-risk model achieves 1.18x lift in the top decile (4.65% denial rate v
 
 ### Short-Term Actions (30-90 Days)
 
-**Build pre-submission validation to catch incomplete submissions.** While completion rates have minimal impact on denial rates, automating basic validation (coverage tier check, provider network verification) costs $50 per flagged claim but prevents $3,000+ denials downstream.
+**Build pre-submission validation to catch incomplete submissions.** While completion rates have minimal impact on denial rates, automating basic validation (coverage tier check, provider network verification) prevents preventable denials downstream.
 
-**Establish communication program for coverage limits.** $4.07M in coverage-limit denials should be prevented through upfront policy explanation at enrollment, not through failed appeals. Partner with Marketing to test enrollment messaging.
+**Add Coverage Limits to the active appeals program.** Prior internal reporting assumed this $4.07M category was unrecoverable and recommended enrollment-messaging only. The real appeal success rate is 59% -- second-highest of any category. Route these denials into the same appeals workflow as Prior Authorization and Billing Errors; upfront policy communication is still worth pursuing to reduce volume, but it should not be the only response.
 
 **Rebalance prior authorization oversight.** Focus coaching and monitoring on prior auth bottlenecks (processing time, authorization approval rates by provider), not on billing or network metrics.
 
 ### Strategic Investments (90+ Days)
 
-**Do not prioritize network renegotiation.** In-network providers have essentially identical denial rates to out-of-network. Network expansion or renegotiation will not reduce denials. Allocate capital elsewhere.
+**Do not prioritize network renegotiation.** In-network providers have essentially identical denial rates to out-of-network (statistically confirmed, p=0.44). Network expansion or renegotiation will not reduce denials. Allocate capital elsewhere.
 
-**Deploy denial-risk scoring into claims adjudication workflow.** Integrate the model's risk decile into the claims system to automatically flag high-risk claims for human review before final adjudication, catching denials before they happen.
+**Deploy denial-risk scoring into claims adjudication workflow.** Integrate the model's risk decile into the claims system to flag high-risk claims for human review before final adjudication. Given the model's current AUC (~0.51), treat this as a low/moderate-confidence triage signal, not a standalone approve/deny decision.
 
-**Establish quarterly denial deep-dive reviews.** Continue monitoring denial patterns by reason, appeal success, and member/provider cohort. This analysis revealed no provider crisis and no concentrated member cohort -- but quarterly reviews ensure new patterns are caught early.
+**Establish quarterly denial deep-dive reviews with appeal-outcome verification.** Continue monitoring denial patterns by reason, appeal success, and member/provider cohort -- and explicitly re-check any "this category is unrecoverable" assumption against actual appeal outcomes each quarter. This analysis revealed no provider crisis and no concentrated member cohort, but it also caught a stale assumption that had gone unverified.
 
 ---
 
@@ -111,30 +111,36 @@ The denial-risk model achieves 1.18x lift in the top decile (4.65% denial rate v
 
 ## 🗂️ Data Structure
 
-All data in this project is synthetic. The analysis-ready dataset (`data/clarity_claims.csv`) was generated to mirror how claim data actually lives across a billing system, member enrollment database, provider directory, and appeals management platform in a real health insurance operation -- see [Source Table Definitions](data/schema/table_definitions.md) and the [entity-relationship diagram](data/schema/erd.md) for the source schema and join logic this flat file would be built from.
+All data in this project is synthetic. Dataset: 200,000 rows | 7,862 denials (3.93%) | Seed: 42 | 350 providers across 4 regions | 100,000 members.
 
-Dataset: 200,000 rows | 7,862 denials (3.93%) | Seed: 42 | 350 providers across 4 regions | 100,000 members
+The data lives across 6 normalized tables, not one flat file, mirroring how claim data actually lives across a billing system, member enrollment database, provider directory, and appeals management platform. `clarity_claims.csv` is the primary table; member and provider attributes are joined in at analysis time via `member_id` / `provider_id`.
 
-| Column | Type | Description |
+**`clarity_claims.csv`** (primary table, 200,000 rows):
+
+| Column | Type | Real Observed Values |
 |---|---|---|
-| claim_id | string | Unique claim identifier |
-| member_id | string | Unique member/subscriber identifier |
-| provider_id | string | Healthcare provider identifier |
-| claim_date | date | Date claim was submitted |
-| claim_amount | float ($) | Billed claim amount |
-| claim_status | categorical | approved, denied, processing, appeal_pending |
-| denial_reason_code | categorical | PA01-PA03 (prior auth), NW01-NW02 (network), CVRG01-02 (coverage), BILL01-02 (billing), MED01 (medical necessity), 999 (invalid), NULL |
-| appeal_submitted | binary | 1 if member/provider appealed, else 0 |
-| appeal_outcome | categorical | approved, partial_approval, denied, pending |
+| claim_id, member_id, provider_id | int | Sequential integer IDs |
+| claim_date, service_start_date, service_end_date | date | 2025 calendar year |
+| claim_amount | float ($) | $500-$50K range, modal peak $3-4K |
+| claim_status | categorical | approved (87.0%), processing (5.0%), denied (3.9%), appeal_pending (2.1%), submitted (2.0%) |
+| submission_completeness_flag | categorical | complete (92.0%), incomplete (5.9%), unknown (2.0%) |
+| claim_category | categorical | office_visit, pharmacy, procedure, imaging, emergency, lab, inpatient (7 values) |
+| network_type | categorical | in_network (78.1%), out_of_network (21.9%) |
+| prior_auth_required | boolean | True / False |
+
+**`clarity_denials.csv`** (7,862 rows, one per denied claim):
+
+| Column | Type | Real Observed Values |
+|---|---|---|
+| denial_reason_code | categorical | PA01/PA02 (prior auth), CVRG01 (coverage), NW01 + free-text "provider not network" (network), BILL01 (billing), MED01 (medical necessity), free-text "missing auth", 999 (invalid), null -- messier than a clean code list, which is realistic for production claims data |
+| denied_claim_amount | float ($) | Portion of the claim denied |
+| appeal_submitted | boolean | True / False |
+| appeal_outcome | categorical | approved, partial_approval, denied, null (not yet appealed) |
 | resolution_amount | float ($) | Amount recovered via appeal |
-| network_type | categorical | in_network, out_of_network, unknown |
-| claim_category | categorical | inpatient, outpatient, emergency, imaging, lab, other |
-| specialty | categorical | primary_care, cardiology, orthopedics, emergency, imaging |
-| submission_completeness | binary | 1 if all required documentation present, else 0 |
-| member_age_group | categorical | 18-25, 26-35, 36-45, 46-55, 56-65, 65+ |
-| member_plan_type | categorical | bronze, silver, gold, platinum |
-| chronic_condition_flags | string | Comma-separated: diabetes, hypertension, heart_disease, copd, mental_health, none |
-| denial_probability / denial_decile / risk_score | float / int / float | Model outputs -- null for leads that never reached Denied status |
+
+**`clarity_providers.csv`** (350 rows): specialty (cardiology, emergency, imaging, lab, orthopedics, pharmacy, primary_care, psychiatry -- 8 values), network_status, geographic_region, claims_submitted_ytd.
+
+**`clarity_members.csv`** (100,000 rows, used by `scripts/03_train_model.py` for model features only -- not loaded by the dashboard): age_group, plan_type, income_bracket, chronic_condition_flags, denied_claims_count_ytd.
 
 Full column-by-column reference: [data/data_dictionary.md](data/data_dictionary.md)
 
@@ -162,7 +168,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-> Note: The analysis-ready dataset is committed to this repo at `data/clarity_claims.csv`. No data generation step is required to run the dashboard. To regenerate it (requires `scikit-learn`, `pandas`, not otherwise needed by the dashboard): `python scripts/01_generate_data_simple.py`. To rebuild the model and metrics: `python scripts/03_train_model.py`.
+> Note: The analysis-ready dataset and trained model are committed to this repo (`data/*.csv`, `models/*.json`, `models/*.pkl`). No data generation or training step is required to run the dashboard -- `app.py` loads `data/clarity_claims.csv`, `clarity_denials.csv`, `clarity_providers.csv`, and `models/model_metrics.json` directly and computes every chart and KPI live from them; nothing is hardcoded. To regenerate the dataset from scratch: `cd scripts && python 01_generate_data_simple.py` (seeded, reproducible). To retrain the model: `cd scripts && python 03_train_model.py`.
 
 ---
 
@@ -171,12 +177,13 @@ streamlit run app.py
 ```
 claims-denial-prevention/
 |-- README.md                          # This file
-|-- app.py                             # Streamlit dashboard (7 tabs)
+|-- app.py                             # Streamlit dashboard (7 tabs) -- loads and aggregates
+|                                       #   the CSVs in data/ live; no numbers are hardcoded
 |-- requirements.txt                   # Python dependencies
 |-- .streamlit/
 |   |-- config.toml                    # Dashboard theme configuration
 |-- scripts/
-|   |-- 01_generate_data_simple.py     # Synthetic dataset generator (200K claims)
+|   |-- 01_generate_data_simple.py     # Synthetic dataset generator (200K claims, seed=42)
 |   |-- 02_analyze_data.py             # SQL discovery analysis
 |   |-- 03_train_model.py              # XGBoost model training and evaluation
 |-- data/
@@ -187,36 +194,38 @@ claims-denial-prevention/
 |   |-- clarity_prior_auth.csv         # Prior authorization history
 |   |-- clarity_claims_detail.csv      # Line-item service details
 |   |-- data_dictionary.md             # Column reference with leakage documentation
-|   |-- clarity_metadata.json          # Generation parameters and model metrics
+|   |-- clarity_metadata.json          # Generation timestamp, seed, dataset summary
 |-- sql/
 |   |-- clarity_denial_analysis.sql    # 9 queries across 5 sections
 |-- models/
-|   |-- xgboost_model.pkl              # Trained denial-risk model
-|   |-- model_metrics.json             # Decile analysis, feature importance, confusion matrix
-|   |-- scaler.pkl                     # Feature scaling artifact
+|   |-- denial_risk_model.pkl          # Trained XGBoost denial-risk model
+|   |-- label_encoders.pkl             # Per-column LabelEncoder objects used at training time
+|   |-- model_metrics.json             # AUC, decile analysis, feature importance, confusion matrix
 |-- docs/
 |   |-- PROJECT_OVERVIEW.md            # Methodology, findings, deployment guide
 |   |-- INTERVIEW_PREP.md              # Interview guide with deep-dives and Q&As
 |-- README_TEMPLATE_PROMPT.md          # Reusable README template for future projects
 ```
 
+> Note: All files listed above are committed to the repository, including `models/` and the supplementary `data/` files. `app.py` only reads `data/clarity_claims.csv`, `clarity_denials.csv`, `clarity_providers.csv`, and `models/model_metrics.json` at runtime; `clarity_members.csv`, `clarity_prior_auth.csv`, and `clarity_claims_detail.csv` are used by `scripts/02_analyze_data.py` and `scripts/03_train_model.py` and are committed for full reproducibility. Both generation scripts are seeded (`seed=42`), so re-running them reproduces the same claims/denials/providers rows (floating-point values may differ in the last 1-2 decimal digits across numpy/pandas versions -- this is display-precision noise, not a data change).
+
 ---
 
 ## ⚠️ Assumptions and Caveats
 
-**Synthetic data:** All data in this project is synthetic, generated with `numpy.random.default_rng(42)` for reproducibility. It is designed to produce realistic denial patterns -- including deliberate denial reason distributions (prior auth 35%, billing 12%, coverage 15%, network 18%, medical necessity 10%) and realistic appeal success rates by reason (billing 61%, prior auth 54%, etc.) -- but does not represent any real company, member, or transaction.
+**Synthetic data:** All data in this project is synthetic, generated with `numpy.random.seed(42)` for reproducibility. It is designed to produce realistic denial patterns -- observed denial reason distribution: prior auth 35.6%, network 17.6%, coverage 14.2%, billing 11.9%, other/unclassified 10.9%, medical necessity 9.8% -- but does not represent any real company, member, or transaction.
 
 **Modeling assumptions:**
 - Target variable: `is_denied`, binary flag indicating claim was denied in full or partial.
 - Leakage prevention: the model is trained on all 200K claims; post-denial appeal outcomes (`appeal_submitted`, `appeal_outcome`, `resolution_amount`) and member historical denial counts (`denied_claims_count_ytd`) are excluded from training features as they are not available at submission time.
-- Model algorithm: `XGBoost` with `scale_pos_weight=24.4` to handle 3.93% imbalanced target, chosen for feature importance transparency and decile concentration analysis; logistic regression was tested and abandoned due to poor lift in top decile.
-- Feature importance: SHAP values show which features move predictions; all feature importance scores in dashboards and reports come directly from trained model.
+- Model algorithm: `XGBoost` with a computed `scale_pos_weight` (~24x, derived from the training split's class ratio) to handle the 3.93% imbalanced target. Categorical features are `LabelEncoder`-encoded (`models/label_encoders.pkl`); no feature scaling is applied since XGBoost is tree-based and scale-invariant.
+- Real test-set ROC AUC is 0.51 -- effectively no better than random on held-out data. This is reported honestly rather than smoothed; the model is used for decile-based triage concentration (1.14x lift in the top decile), not as a reliable individual-claim predictor.
 
 **Business assumptions:**
-- `potential_order_value` is a synthetic analog to average claim amount per denied patient (~$3,800 mean), not a real pricing figure.
-- The Financial Impact tab's scenario simulator (prior auth speedup, billing appeals rate, network investment savings) uses measured values from the data, not estimated or benchmarked assumptions. All recovery scenarios are grounded in actual appeal success rates observed in the dataset.
-- The 54% prior auth appeal success rate is from observed data in the synthetic dataset, not an external benchmark. A real company's appeal success rate may differ.
-- Recovery potential ($6-8M Year-1) is conservative and assumes only the top 2 denial reasons (prior auth + billing) are targeted; targeting all three drivers shows diminishing returns.
+- The Financial Impact tab's scenario simulator computes recovery scenarios directly from measured appeal success rates per denial category (Prior Auth, + Billing, + all 5 core reasons), not from estimated or benchmarked assumptions.
+- Scenario dollar figures represent a **theoretical recovery ceiling** -- denied dollars in a category multiplied by that category's historical appeal success rate, i.e. what recovery would look like if every eligible denial in the category were appealed. This is a planning ceiling, not a Year-1 forecast; only ~25% of denials are appealed today, so full-scope capture requires a substantial appeals-program ramp-up, not a one-time fix.
+- The prior auth and billing-error appeal success rates are observed data in the synthetic dataset, not external benchmarks. A real company's appeal success rate may differ.
+- An earlier internal draft of this analysis assumed Coverage Limits had a 0% appeal success rate and excluded it from all recovery scenarios. That assumption was not checked against the underlying `appeal_outcome` data and has been corrected here (see Insight #5) -- a reminder to verify "unrecoverable" claims against actual outcomes before they become a standing recommendation.
 
 ---
 
