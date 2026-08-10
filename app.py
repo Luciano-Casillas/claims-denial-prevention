@@ -448,10 +448,11 @@ with tabs[3]:
     with col2:
         features = ['Claim Amount', 'Plan Type', 'Chronic Condition', 'Network Status', 'Specialty', 'Prior Auth Required']
         importance = [0.1071, 0.0946, 0.0920, 0.0910, 0.0910, 0.0890]
-        
-        fig = go.Figure(data=[go.Barh(
+
+        fig = go.Figure(data=[go.Bar(
             x=importance,
             y=features,
+            orientation='h',
             marker=dict(color=BLUE_700),
             text=[f"{i*100:.1f}%" for i in importance],
             textposition='outside',
