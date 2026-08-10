@@ -1,0 +1,127 @@
+{
+  "model_type": "XGBoost",
+  "n_estimators": 100,
+  "max_depth": 6,
+  "learning_rate": 0.1,
+  "auc_train": 0.6684885278877212,
+  "auc_test": 0.5113910939754225,
+  "accuracy": 0.602625,
+  "precision": 0.04090005769600615,
+  "recall": 0.405852417302799,
+  "f1": 0.07431133888532991,
+  "baseline_denial_rate": 0.0393,
+  "confusion_matrix": {
+    "true_negatives": 23467,
+    "false_positives": 14961,
+    "false_negatives": 934,
+    "true_positives": 638
+  },
+  "feature_importance": [
+    {
+      "feature": "claim_amount",
+      "importance": 0.11041971296072006
+    },
+    {
+      "feature": "network_type",
+      "importance": 0.10201235860586166
+    },
+    {
+      "feature": "specialty",
+      "importance": 0.09743112325668335
+    },
+    {
+      "feature": "age_group",
+      "importance": 0.09583688527345657
+    },
+    {
+      "feature": "plan_type",
+      "importance": 0.09529683738946915
+    },
+    {
+      "feature": "claim_category",
+      "importance": 0.0940273329615593
+    },
+    {
+      "feature": "network_status",
+      "importance": 0.09393381327390671
+    },
+    {
+      "feature": "chronic_condition",
+      "importance": 0.0876074954867363
+    },
+    {
+      "feature": "submission_completeness",
+      "importance": 0.0874398723244667
+    },
+    {
+      "feature": "prior_auth_required",
+      "importance": 0.08603735268115997
+    },
+    {
+      "feature": "has_missing_provider",
+      "importance": 0.049957241863012314
+    }
+  ],
+  "decile_analysis": {
+    "1": {
+      "claim_count": 4000,
+      "denial_count": 179,
+      "denial_rate": 0.0448,
+      "denial_rate_pct": 4.4799999999999995
+    },
+    "2": {
+      "claim_count": 4000,
+      "denial_count": 157,
+      "denial_rate": 0.0392,
+      "denial_rate_pct": 3.92
+    },
+    "3": {
+      "claim_count": 4000,
+      "denial_count": 160,
+      "denial_rate": 0.04,
+      "denial_rate_pct": 4.0
+    },
+    "4": {
+      "claim_count": 4000,
+      "denial_count": 161,
+      "denial_rate": 0.0402,
+      "denial_rate_pct": 4.02
+    },
+    "5": {
+      "claim_count": 4000,
+      "denial_count": 162,
+      "denial_rate": 0.0405,
+      "denial_rate_pct": 4.05
+    },
+    "6": {
+      "claim_count": 4000,
+      "denial_count": 140,
+      "denial_rate": 0.035,
+      "denial_rate_pct": 3.5000000000000004
+    },
+    "7": {
+      "claim_count": 4000,
+      "denial_count": 157,
+      "denial_rate": 0.0392,
+      "denial_rate_pct": 3.92
+    },
+    "8": {
+      "claim_count": 4000,
+      "denial_count": 161,
+      "denial_rate": 0.0402,
+      "denial_rate_pct": 4.02
+    },
+    "9": {
+      "claim_count": 4000,
+      "denial_count": 134,
+      "denial_rate": 0.0335,
+      "denial_rate_pct": 3.35
+    },
+    "10": {
+      "claim_count": 4000,
+      "denial_count": 161,
+      "denial_rate": 0.0402,
+      "denial_rate_pct": 4.02
+    }
+  }
+}

@@ -43,6 +43,7 @@ Thumbs.db
 # Project-specific
 *.pkl
 *.pkl.bak
+!models/*.pkl
 .streamlit/secrets.toml
 models/.cache
 models/*.joblib

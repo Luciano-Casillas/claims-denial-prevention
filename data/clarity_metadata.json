@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "generated_date": "2026-08-10T14:04:15.630667",
+  "seed": 42,
+  "dataset_summary": {
+    "total_claims": 200000,
+    "total_denials": 7862,
+    "denial_rate": 0.03931,
+    "total_denied_dollars": 29670290.577425286,
+    "average_denied_claim": 3773.8858531449105,
+    "total_members": 100000,
+    "total_providers": 350,
+    "total_claim_details": 269997,
+    "total_prior_auths": 80240
+  }
+}
