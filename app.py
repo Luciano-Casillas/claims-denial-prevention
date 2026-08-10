@@ -127,12 +127,12 @@ if data_loaded:
     total_claims = len(claims)
     total_denials = len(denials)
     denial_rate = (total_denials / total_claims) * 100
-    total_denied_usd = denials['denied_amount'].sum() if 'denied_amount' in denials.columns else 0
+    total_denied_usd = denials['denied_claim_amount'].sum() if 'denied_claim_amount' in denials.columns else 0
     avg_denied_claim = total_denied_usd / total_denials if total_denials > 0 else 0
     
     # Denial reasons
-    denial_reasons = denials['denial_reason'].value_counts() if 'denial_reason' in denials.columns else {}
-    denial_reason_dollars = denials.groupby('denial_reason')['denied_amount'].sum() if 'denial_reason' in denials.columns else {}
+    denial_reasons = denials['denial_reason_category_manual'].value_counts() if 'denial_reason_category_manual' in denials.columns else {}
+    denial_reason_dollars = denials.groupby('denial_reason_category_manual')['denied_claim_amount'].sum() if 'denial_reason_category_manual' in denials.columns else {}
     
     # Appeal analysis
     appealed = len(denials[denials['appeal_submitted'] == 1]) if 'appeal_submitted' in denials.columns else 0
@@ -313,7 +313,7 @@ if data_loaded:
         with col2:
             # Appeal success by reason
             if 'appeal_outcome' in denials.columns:
-                appeal_by_reason = denials.groupby('denial_reason').apply(
+                appeal_by_reason = denials.groupby('denial_reason_category_manual').apply(
                     lambda x: (x['appeal_outcome'] == 'approved').sum() / len(x) * 100 if len(x) > 0 else 0
                 ).sort_values(ascending=False)
                 
