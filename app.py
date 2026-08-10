@@ -303,7 +303,8 @@ with col4:
 st.markdown(
     f'<div class="caveat-note">Live metrics computed from {len(claims):,} filtered claims '
     f'({len(claim_categories)}/{len(category_options)} categories, {len(specialties)}/{len(specialty_options)} specialties selected). '
-    f'No period-over-period deltas are shown -- the synthetic dataset is a single snapshot with no time-series comparison available.</div>',
+    f'KPI cards above are single-snapshot metrics with no period-over-period deltas -- see "Denial Rate Over Time" '
+    f'in the Overview tab for the monthly trend.</div>',
     unsafe_allow_html=True
 )
 
@@ -339,7 +340,7 @@ with tabs[0]:
     col1, col2 = st.columns(2)
 
     with col1:
-        status_counts = claims["claim_status"].value_counts()
+        status_counts = claims["claim_status"].value_counts()  # already sorted desc by count
         status_colors = {
             "approved": GREEN_700,
             "denied": ORANGE_700,
@@ -347,20 +348,59 @@ with tabs[0]:
             "appeal_pending": BLUE_500,
             "submitted": STEEL_700,
         }
-        colors = [status_colors.get(s, GRAY_300) for s in status_counts.index]
-        fig = go.Figure(data=[go.Pie(
-            labels=[s.replace("_", " ").title() for s in status_counts.index],
-            values=status_counts.values,
-            textposition="outside",
-            marker=dict(colors=colors)
-        )])
+
+        # Largest-remainder (Hamilton) allocation of 100 waffle squares so
+        # counts always sum to exactly 100 regardless of rounding.
+        total_n = status_counts.sum()
+        exact = status_counts / total_n * 100
+        base = np.floor(exact).astype(int)
+        remainder = 100 - int(base.sum())
+        fracs = (exact - base).sort_values(ascending=False)
+        alloc = base.copy()
+        for status in fracs.index[:remainder]:
+            alloc[status] += 1
+
+        # Row-major grid fill, contiguous blocks per category (not speckled).
+        GRID = 10
+        xs, ys, cell_status = [], [], []
+        cell = 0
+        for status in status_counts.index:
+            for _ in range(int(alloc[status])):
+                row, col = divmod(cell, GRID)
+                xs.append(col)
+                ys.append(row)
+                cell_status.append(status)
+                cell += 1
+
+        fig = go.Figure()
+        for status in status_counts.index:
+            idx = [i for i, s in enumerate(cell_status) if s == status]
+            pct = exact[status]
+            n_sq = int(alloc[status])
+            label = status.replace("_", " ").title()
+            fig.add_trace(go.Scatter(
+                x=[xs[i] for i in idx],
+                y=[ys[i] for i in idx],
+                mode="markers",
+                marker=dict(symbol="square", size=22,
+                            color=status_colors.get(status, GRAY_300),
+                            line=dict(width=1, color=WHITE)),
+                name=f"{label} ({pct:.1f}%)",
+                hovertemplate=f"{label}: {pct:.2f}%<br>{n_sq} of 100 squares<extra></extra>",
+            ))
+
+        fig.update_xaxes(visible=False, range=[-0.6, GRID - 0.4], fixedrange=True)
+        fig.update_yaxes(visible=False, range=[GRID - 0.4, -0.6], fixedrange=True,
+                          scaleanchor="x", scaleratio=1)
         fig.update_layout(
-            height=340,
+            title=dict(text="Claim Status Breakdown", font=dict(family="Arial", size=14, color=NAVY),
+                       x=0.01, xanchor="left"),
+            height=360,
             paper_bgcolor=WHITE,
             plot_bgcolor=WHITE,
             font=dict(family="Arial", size=12),
-            margin=dict(l=16, r=16, t=44, b=44),
-            legend=dict(orientation="h", x=0.5, xanchor="center", y=-0.2)
+            margin=dict(l=16, r=16, t=56, b=44),
+            legend=dict(orientation="h", x=0.5, xanchor="center", y=-0.18),
         )
         st.plotly_chart(fig, width="stretch")
         appeal_rate = denials["appeal_submitted"].mean() * 100 if len(denials) else 0
@@ -376,11 +416,13 @@ with tabs[0]:
             textfont=dict(size=12, color=NAVY)
         )])
         fig.update_layout(
-            height=340,
+            title=dict(text="Denial Volume by Reason Category", font=dict(family="Arial", size=14, color=NAVY),
+                       x=0.01, xanchor="left"),
+            height=360,
             paper_bgcolor=WHITE,
             plot_bgcolor=WHITE,
             font=dict(family="Arial", size=12),
-            margin=dict(l=16, r=16, t=44, b=44),
+            margin=dict(l=16, r=16, t=56, b=44),
             xaxis=dict(tickangle=-20),
             yaxis=dict(title="Denial Count")
         )
@@ -435,6 +477,44 @@ with tabs[0]:
         </div>
         """, unsafe_allow_html=True)
 
+    st.markdown('<div class="section-header">Denial Rate Over Time</div>', unsafe_allow_html=True)
+
+    claim_dates = pd.to_datetime(claims["claim_date"])
+    month_df = claims.copy()
+    month_df["claim_month"] = claim_dates.dt.to_period("M").dt.to_timestamp()
+    monthly = month_df.groupby("claim_month")["is_denied"].agg(["count", "mean"]).reset_index()
+    monthly["denial_rate_pct"] = monthly["mean"] * 100
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=monthly["claim_month"], y=monthly["denial_rate_pct"],
+        mode="lines+markers",
+        line=dict(color=ORANGE_700, width=2),
+        marker=dict(size=7, color=ORANGE_700),
+        hovertemplate="%{x|%b %Y}: %{y:.2f}%<extra></extra>",
+    ))
+    fig.add_hline(y=denial_rate, line_dash="dot", line_color=STEEL_700,
+                  annotation_text=f"Overall: {denial_rate:.2f}%", annotation_position="top left")
+    fig.update_layout(
+        title=dict(text="Monthly Denial Rate Trend", font=dict(family="Arial", size=14, color=NAVY),
+                   x=0.01, xanchor="left"),
+        height=320,
+        paper_bgcolor=WHITE, plot_bgcolor=WHITE,
+        font=dict(family="Arial", size=12),
+        margin=dict(l=16, r=16, t=56, b=44),
+        xaxis=dict(title="Month", tickformat="%b %Y"),
+        yaxis=dict(title="Denial Rate (%)"),
+    )
+    st.plotly_chart(fig, width="stretch")
+
+    date_range_note = f"{claim_dates.min():%b %d, %Y} - {claim_dates.max():%b %d, %Y}"
+    st.markdown(
+        f"**Takeaway:** Data covers {date_range_note}. Denial rate is stable across the year "
+        f"(no seasonal pattern is built into the synthetic generator) -- month-to-month movement "
+        f"reflects sampling noise around the {denial_rate:.2f}% baseline, not a real trend.",
+        unsafe_allow_html=True
+    )
+
 # ============================================================
 # TAB 2: ROOT CAUSE ANALYSIS
 # ============================================================
@@ -463,11 +543,13 @@ with tabs[1]:
             textfont=dict(size=12, color=NAVY)
         )])
         fig.update_layout(
-            height=340,
+            title=dict(text="Denied Dollars by Reason Category", font=dict(family="Arial", size=14, color=NAVY),
+                       x=0.01, xanchor="left"),
+            height=360,
             paper_bgcolor=WHITE,
             plot_bgcolor=WHITE,
             font=dict(family="Arial", size=12),
-            margin=dict(l=16, r=16, t=44, b=44),
+            margin=dict(l=16, r=16, t=56, b=44),
             xaxis=dict(tickangle=-20),
             yaxis=dict(title="Denied Amount ($M)")
         )
@@ -486,11 +568,13 @@ with tabs[1]:
             textfont=dict(size=12, color=NAVY)
         )])
         fig.update_layout(
-            height=340,
+            title=dict(text="Appeal Success Rate by Reason Category", font=dict(family="Arial", size=14, color=NAVY),
+                       x=0.01, xanchor="left"),
+            height=360,
             paper_bgcolor=WHITE,
             plot_bgcolor=WHITE,
             font=dict(family="Arial", size=12),
-            margin=dict(l=16, r=16, t=44, b=44),
+            margin=dict(l=16, r=16, t=56, b=44),
             xaxis=dict(tickangle=-20),
             yaxis=dict(title="Appeal Success Rate (%)")
         )
@@ -531,11 +615,13 @@ with tabs[2]:
             textfont=dict(size=12, color=NAVY)
         )])
         fig.update_layout(
-            height=340,
+            title=dict(text="Denial Rate by Provider Specialty", font=dict(family="Arial", size=14, color=NAVY),
+                       x=0.01, xanchor="left"),
+            height=360,
             paper_bgcolor=WHITE,
             plot_bgcolor=WHITE,
             font=dict(family="Arial", size=12),
-            margin=dict(l=16, r=16, t=44, b=44),
+            margin=dict(l=16, r=16, t=56, b=44),
             xaxis=dict(tickangle=-20),
             yaxis=dict(title="Denial Rate (%)")
         )
@@ -566,11 +652,13 @@ with tabs[2]:
             textfont=dict(size=12, color=NAVY)
         )])
         fig.update_layout(
-            height=340,
+            title=dict(text="Denial Rate: In-Network vs. Out-of-Network", font=dict(family="Arial", size=14, color=NAVY),
+                       x=0.01, xanchor="left"),
+            height=360,
             paper_bgcolor=WHITE,
             plot_bgcolor=WHITE,
             font=dict(family="Arial", size=12),
-            margin=dict(l=16, r=16, t=44, b=44),
+            margin=dict(l=16, r=16, t=56, b=44),
             xaxis=dict(tickangle=0),
             yaxis=dict(title="Denial Rate (%)")
         )
@@ -627,11 +715,13 @@ with tabs[3]:
                 textfont=dict(size=11, color=NAVY)
             )])
             fig.update_layout(
-                height=340,
+                title=dict(text="Denial Rate by Risk Decile", font=dict(family="Arial", size=14, color=NAVY),
+                           x=0.01, xanchor="left"),
+                height=360,
                 paper_bgcolor=WHITE,
                 plot_bgcolor=WHITE,
                 font=dict(family="Arial", size=12),
-                margin=dict(l=16, r=16, t=44, b=44),
+                margin=dict(l=16, r=16, t=56, b=44),
                 xaxis=dict(title="Decile (1=Highest Risk)"),
                 yaxis=dict(title="Denial Rate (%)")
             )
@@ -657,11 +747,13 @@ with tabs[3]:
                 textfont=dict(size=11, color=NAVY)
             )])
             fig.update_layout(
-                height=340,
+                title=dict(text="Top Predictive Features (XGBoost Model)", font=dict(family="Arial", size=14, color=NAVY),
+                           x=0.01, xanchor="left"),
+                height=360,
                 paper_bgcolor=WHITE,
                 plot_bgcolor=WHITE,
                 font=dict(family="Arial", size=12),
-                margin=dict(l=16, r=16, t=44, b=44),
+                margin=dict(l=16, r=16, t=56, b=44),
                 xaxis=dict(tickangle=-20),
                 yaxis=dict(title="Feature Importance")
             )
@@ -749,11 +841,13 @@ with tabs[4]:
                 textposition="outside"
             ))
             fig.update_layout(
-                height=340,
+                title=dict(text="Recovery Ceiling by Scenario", font=dict(family="Arial", size=14, color=NAVY),
+                           x=0.01, xanchor="left"),
+                height=360,
                 paper_bgcolor=WHITE,
                 plot_bgcolor=WHITE,
                 font=dict(family="Arial", size=12),
-                margin=dict(l=16, r=16, t=44, b=44),
+                margin=dict(l=16, r=16, t=56, b=44),
                 yaxis=dict(title="Recovery Ceiling ($M) -- assumes 100% appeal push"),
                 hovermode="x unified"
             )
