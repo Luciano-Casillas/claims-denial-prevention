@@ -271,4 +271,4 @@ Senior Data Analyst & Independent Analytics Consultant
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://linkedin.com/in/luciano-casillas) [![GitHub](https://img.shields.io/badge/GitHub-Luciano--Casillas-lightgrey)](https://github.com/Luciano-Casillas) [![Portfolio](https://img.shields.io/badge/Portfolio-luciano--casillas.github.io-informational)](https://luciano-casillas.github.io)
 
-<luciano.casillasjr@gmail.com>
+<luciano.casillas512@gmail.com>
