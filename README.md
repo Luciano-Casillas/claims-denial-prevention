@@ -39,6 +39,8 @@ The Business Intelligence initiative tasked Analytics with closing a gap: leader
 - The denial-risk model (XGBoost, test AUC **0.5114**) achieves **1.14x lift** in the top decile despite imbalanced data (near-random AUC reflects the limited predictive power of the available features for this synthetic label), and concentrates actionable high-risk flags for prioritized manual review or pre-submission intervention.
 - **Theoretical full-scope recovery ceiling of $14.8M** (100% appeal-push across all 5 core denial reasons, including the newly-recoverable Coverage Limits category). This is a planning ceiling, not a Year-1 guarantee -- realistic Year-1 capture during program ramp-up is typically 50-70% of the $7.8M Prior Auth + Billing ceiling for the first two categories targeted.
 
+![Recovery Ceiling by Scenario](screenshots/08_recovery_ceiling_scenarios.png)
+
 ---
 
 ## 🔍 Insights Deep Dive
@@ -47,29 +49,45 @@ The Business Intelligence initiative tasked Analytics with closing a gap: leader
 
 2,802 denials are directly traced to prior authorization processing delays (codes PA01, PA02, PA03). 54% of these appeal successfully, meaning most denials in this category are recoverable. This is the single largest lever for revenue recovery and is addressable through process automation, not policy change.
 
+![Denied Dollars by Reason Category](screenshots/01_prior_auth_denied_dollars.png)
+
 ### 2. Billing Errors Appeal at 61% Success Rate -- Highest Among All Reasons
 
 936 denials are classification as billing errors (codes BILL01, BILL02). These denials appeal at the highest rate (61% success vs 54-57% for other categories), pointing to a low-risk, high-ROI recovery target. $3.64M sits behind these denials; a targeted appeals program captures $2-3M.
+
+![Appeal Success Rate by Reason Category](screenshots/02_billing_appeal_success.png)
 
 ### 3. Network Affiliation is a Non-Factor -- Contrary to Intuition
 
 In-network providers have a 3.95% denial rate vs out-of-network 3.87% -- an 8 basis-point spread. A two-proportion z-test confirms this is not statistically significant (z=0.77, p=0.44; in-network 95% CI [3.85%, 4.05%], out-of-network 95% CI [3.69%, 4.05%] -- the intervals overlap substantially). Network affiliation was the initial hypothesis for explaining denial variance; this finding proves it is not a driver. Process quality, not network tier, is the bottleneck.
 
+![Denial Rate: In-Network vs. Out-of-Network](screenshots/03_network_nonfactor.png)
+
 ### 4. Denials Are Systemic, Not Concentrated in Bad Actors
 
 Top provider denied $148K (0.5% of total). No single provider is an outlier. At the member level, only 2 members out of 100,000 have 3+ denials. Denials are spread across the membership and provider base, indicating a systemic process issue, not isolated failures to target with audits or provider retraining.
+
+![Top 10 Providers by Denied Dollars](screenshots/04a_top_providers.png)
+
+![Members by Denial Count](screenshots/04b_members_by_denial_count.png)
 
 ### 5. Coverage Limits Are Recoverable -- A Correction to Prior Reporting
 
 $4.07M (14% of denials) are coverage-limit denials (codes CVRG01, CVRG02). An earlier internal draft of this analysis assumed these were policy-defined maximums with no appeal pathway (0% appeal success) and recommended writing them off. **Re-measuring appeal outcomes directly from the denials table shows this was wrong**: 282 appeals were submitted against coverage-limit denials, and 167 succeeded (approved or partial_approval) -- a **59% success rate**, the second-highest of any category. Recommendation: add Coverage Limits to the active appeals program alongside Prior Authorization and Billing Errors, and separately audit why the earlier analysis assumed a hard 0% rate without checking the data.
 
+![Coverage Limits Correction](screenshots/05_coverage_limits_correction.png)
+
 ### 6. Incomplete Submissions Have Minimal Impact
 
 Submission completeness (presence of required documentation) shows only a small spread in denial rates (complete: 3.92%, incomplete: 3.95%, unknown: 4.40%). This is not a major driver of denials despite intuitive appeal. It ranks low in the prioritization matrix.
 
+![Denial Rate by Submission Completeness](screenshots/06_submission_completeness.png)
+
 ### 7. The Denial-Risk Model Concentrates High-Risk Claims for Prioritized Intervention
 
 The denial-risk model (XGBoost) achieves 1.14x lift in the top decile (4.48% denial rate vs 3.93% baseline) with honest test ROC AUC 0.5114, driven by imbalanced data and the limited predictive power of available features. Top features: claim amount (11.0%), network type (10.2%), specialty (9.7%). Real decile output is not perfectly monotonic (decile 2 dips below deciles 3-5) -- this is expected at this AUC level and is reported as-is rather than smoothed. This concentration enables prioritized high-touch review or pre-submission flagging for intervention, used as a triage signal rather than a standalone approve/deny decision.
+
+![Denial Rate by Risk Decile and Top Predictive Features](screenshots/07_model_lift_features.png)
 
 ---
 
@@ -106,6 +124,8 @@ The denial-risk model (XGBoost) achieves 1.14x lift in the top decile (4.48% den
 | Dashboard | Link |
 |---|---|
 | Claims Denial Prevention Analytics | [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://claims-denial-prevention.streamlit.app/) |
+
+![Dashboard Overview](screenshots/00_hero_overview.png)
 
 ---
 
