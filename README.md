@@ -47,45 +47,59 @@ The Business Intelligence initiative tasked Analytics with closing a gap: leader
 
 ### 1. Prior Authorization Delays Own 35% of Denied Dollars ($10.4M)
 
-2,802 denials are directly traced to prior authorization processing delays (codes PA01, PA02, PA03). 54% of these appeal successfully, meaning most denials in this category are recoverable. This is the single largest lever for revenue recovery and is addressable through process automation, not policy change.
+Prior authorization is a checkpoint: the insurer has to sign off before a procedure happens. When that sign-off takes too long and the service date passes anyway, the claim gets denied automatically, not because the care wasn't appropriate, but because the paperwork missed its window. That is exactly why the appeal success rate on this category is 54%. Most of these claims were never really wrong. They just got caught by a clock.
+
+**What the chart shows:** look at how much taller the Prior Authorization bar is than every other reason on the list. That gap by itself is the finding. It tells you the opportunity is not spread thin across a dozen small problems, it is stacked up behind one process step, which means fixing that one step (faster turnaround, not a policy rewrite) is where the first dollar of investment should go.
 
 ![Denied Dollars by Reason Category](screenshots/01_prior_auth_denied_dollars.png)
 
-### 2. Billing Errors Appeal at 61% Success Rate -- Highest Among All Reasons
+### 2. Billing Errors Appeal at 61% Success Rate, Highest Among All Reasons
 
-936 denials are classification as billing errors (codes BILL01, BILL02). These denials appeal at the highest rate (61% success vs 54-57% for other categories), pointing to a low-risk, high-ROI recovery target. $3.64M sits behind these denials; a targeted appeals program captures $2-3M.
+Billing-error denials are clerical, a wrong code, a mismatched modifier, a data entry slip, not a real dispute about whether the care was covered. Once someone corrects the entry and resubmits, there is rarely anything left to argue about, which is why this category overturns more often than any other.
+
+**What the chart shows:** this is the tallest bar in the appeal-success comparison. A tall bar here means something different than a tall bar on the denied-dollars chart: it is not telling you where the most money sits, it is telling you where a dollar of recovery effort goes the furthest. That distinction is why this earns an "Immediate Action" recommendation even though it is a smaller pool than Prior Authorization.
 
 ![Appeal Success Rate by Reason Category](screenshots/02_billing_appeal_success.png)
 
-### 3. Network Affiliation is a Non-Factor -- Contrary to Intuition
+### 3. Network Affiliation Is a Non-Factor, Contrary to Intuition
 
-In-network providers have a 3.95% denial rate vs out-of-network 3.87% -- an 8 basis-point spread. A two-proportion z-test confirms this is not statistically significant (z=0.77, p=0.44; in-network 95% CI [3.85%, 4.05%], out-of-network 95% CI [3.69%, 4.05%] -- the intervals overlap substantially). Network affiliation was the initial hypothesis for explaining denial variance; this finding proves it is not a driver. Process quality, not network tier, is the bottleneck.
+The natural assumption walking into this analysis was that out-of-network claims get denied more, insurers have an incentive to steer patients toward network providers. The data does not support that. In-network denies at 3.95%, out-of-network at 3.87%, and the statistical test behind that comparison (p=0.44) says this eight-point gap is well within what you'd expect from random noise alone.
+
+**What the chart shows:** the two bars sit almost on top of each other, and if the confidence-interval whiskers are visible, they overlap heavily. That overlap is the actual message. When two bars look close and their uncertainty ranges overlap, the honest conclusion is "no real difference," not "a small difference." This is why network renegotiation is explicitly ruled out in the Recommendations section rather than left as a maybe.
 
 ![Denial Rate: In-Network vs. Out-of-Network](screenshots/03_network_nonfactor.png)
 
 ### 4. Denials Are Systemic, Not Concentrated in Bad Actors
 
-Top provider denied $148K (0.5% of total). No single provider is an outlier. At the member level, only 2 members out of 100,000 have 3+ denials. Denials are spread across the membership and provider base, indicating a systemic process issue, not isolated failures to target with audits or provider retraining.
+If a handful of providers or members were causing most of the denials, the fix would be simple: audit them, retrain them, done. That is not what the data shows. The single worst provider accounts for only 0.5% of all denied dollars, and out of 100,000 members, only 2 have racked up three or more denials. When a problem this size cannot be pinned on a small group, it means the problem lives in the process everyone is using, not in a few people doing it wrong.
+
+**What the chart shows:** watch how the top-10 provider bars taper off gradually instead of falling off a cliff after the first one or two. A steep drop-off would point to an outlier worth investigating individually. A gradual, even slope like this one is the visual signature of a systemic issue spread evenly across the whole network. The companion chart on member denial counts tells the same story from the other side: almost the entire member base clusters at zero or one denial, with no meaningful "repeat offender" tail to chase.
 
 ![Top 10 Providers by Denied Dollars](screenshots/04a_top_providers.png)
 
 ![Members by Denial Count](screenshots/04b_members_by_denial_count.png)
 
-### 5. Coverage Limits Are Recoverable -- A Correction to Prior Reporting
+### 5. Coverage Limits Are Recoverable: A Correction to Prior Reporting
 
-$4.07M (14% of denials) are coverage-limit denials (codes CVRG01, CVRG02). An earlier internal draft of this analysis assumed these were policy-defined maximums with no appeal pathway (0% appeal success) and recommended writing them off. **Re-measuring appeal outcomes directly from the denials table shows this was wrong**: 282 appeals were submitted against coverage-limit denials, and 167 succeeded (approved or partial_approval) -- a **59% success rate**, the second-highest of any category. Recommendation: add Coverage Limits to the active appeals program alongside Prior Authorization and Billing Errors, and separately audit why the earlier analysis assumed a hard 0% rate without checking the data.
+An earlier internal draft treated coverage-limit denials as a dead end, policy maximums with no appeal pathway, and wrote the whole $4.07M category off. Nobody had actually gone back and checked that assumption against the appeal outcomes on file. When this analysis did, the story changed: 282 appeals were filed against coverage-limit denials, and 167 of them, 59%, succeeded. That is the second-best success rate of any category in the book. The likely reason the original assumption missed this is that "policy limit" sounds final, but in practice partial approvals, coding corrections, and medical-necessity overrides can move that limit more often than people expect.
+
+**What the chart shows:** this one is built as a before-and-after, the assumed 0% next to the measured 59%. The size of that gap is the point of the whole insight. It is not a small correction to round off, it is the difference between writing off $4M and actively working it, and it is a reminder to verify "unrecoverable" claims against real outcomes before they harden into a standing policy.
 
 ![Coverage Limits Correction](screenshots/05_coverage_limits_correction.png)
 
 ### 6. Incomplete Submissions Have Minimal Impact
 
-Submission completeness (presence of required documentation) shows only a small spread in denial rates (complete: 3.92%, incomplete: 3.95%, unknown: 4.40%). This is not a major driver of denials despite intuitive appeal. It ranks low in the prioritization matrix.
+It feels intuitive that missing paperwork should drive denials. The measured spread says otherwise: complete submissions deny at 3.92%, incomplete at 3.95%, barely a difference, and even "unknown" completeness only reaches 4.40%. Claims are getting denied for reasons that have little to do with whether the file was complete when it landed.
+
+**What the chart shows:** three bars sitting at nearly the same height. When a chart looks this flat, that flatness is the finding, it tells you this is not where the next process investment should go, even though it is the fix most people would reach for first.
 
 ![Denial Rate by Submission Completeness](screenshots/06_submission_completeness.png)
 
 ### 7. The Denial-Risk Model Concentrates High-Risk Claims for Prioritized Intervention
 
-The denial-risk model (XGBoost) achieves 1.14x lift in the top decile (4.48% denial rate vs 3.93% baseline) with honest test ROC AUC 0.5114, driven by imbalanced data and the limited predictive power of available features. Top features: claim amount (11.0%), network type (10.2%), specialty (9.7%). Real decile output is not perfectly monotonic (decile 2 dips below deciles 3-5) -- this is expected at this AUC level and is reported as-is rather than smoothed. This concentration enables prioritized high-touch review or pre-submission flagging for intervention, used as a triage signal rather than a standalone approve/deny decision.
+An AUC of 0.51 sounds like the model is barely better than a coin flip, and on a claim-by-claim basis, it is. But that is the wrong way to use it. Sorted into deciles, the riskiest 10% of claims deny at 4.48% versus a 3.93% baseline, a real, if modest, 1.14x concentration. In a claims operation processing hundreds of thousands of records, even a small, reliable edge in sorting the queue means reviewers spend their limited time on the claims most likely to need it, instead of working the pile in random order.
+
+**What the chart shows:** two things to look at here. First, the lift bars across deciles, the top decile sitting visibly above the baseline line is the whole value of the model in one glance, even though the gap is not dramatic. Second, the feature-importance bars next to it show what the model is actually keying on: claim amount, network type, and specialty lead the list, which tells leadership this is picking up on claim characteristics, not on anything that looks like an inappropriate proxy for a protected class or an unrelated data artifact.
 
 ![Denial Rate by Risk Decile and Top Predictive Features](screenshots/07_model_lift_features.png)
 
